@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-
+     
 class SettingsOverlay(QWidget):
     """Оверлей настроек - ВНУТРИ главного окна, поверх контента"""
     
@@ -56,7 +56,7 @@ class SettingsOverlay(QWidget):
         """)
         layout.addWidget(title)
         
-        # Контент настроек (в него упаковывать сами функции)
+        # Контент настроек (в него упаковывать сами настройки)
         content = QWidget()
         content.setStyleSheet("""
             QWidget {
@@ -69,9 +69,40 @@ class SettingsOverlay(QWidget):
         content_layout.setContentsMargins(20, 20, 20, 20)
         
         
+        label_res = QLabel("Выберите разрешение:")
+        # Создаём выпадающий список (QComboBox)
+        self.combo_res = QComboBox()
+        resolutions = ["800x600", "1024x768", "1280x720", "1920x1080"]
+        self.combo_res.addItems(resolutions)
+        self.combo_res.setStyleSheet("""
+            QComboBox {
+                color: #2F4F4F;              /* цвет текста в поле */
+                font-size: 12pt;              /* размер шрифта */
+                font-weight: bold;             /* жирность (опционально) */
+                background-color: #FFF8DC;     /* фон поля */
+                border: 2px solid #8B4513;     /* рамка */
+                border-radius: 5px;            /* скругление */
+                padding: 5px;                  /* внутренние отступы */
+            }
+
+
+            /* Альтернативный способ стилизации элементов (если нужны разные цвета) */
+            QComboBox::item {
+                color: #2F4F4F;
+                background-color: #FFF8DC;
+            }
+
+            QComboBox::item:selected {
+                background-color: #DEB887;
+                color: #8B4513;
+            }
+        """)
+        content_layout.addWidget(self.combo_res)
+        self.change_resolution()
+        self.combo_res.currentIndexChanged.connect(self.change_resolution)
+        
         content_layout.addStretch()
         layout.addWidget(content)
-        
         # Кнопки
         buttons_layout = QHBoxLayout()
         buttons_layout.setSpacing(10)
@@ -125,6 +156,12 @@ class SettingsOverlay(QWidget):
             }
         """)
     
+    def change_resolution(self):
+        # Получаем выбранную строку
+        selected = self.combo_res.currentText()
+        # Разделяем по символу 'x' и преобразуем в целые числа
+        self.res_width, self.res_height = map(int, selected.split('x'))
+        
     def resizeEvent(self, event):
         """При изменении размера обновляем геометрию"""
         super().resizeEvent(event)
@@ -143,11 +180,10 @@ class SettingsOverlay(QWidget):
         self.settings_container.raise_()
     
     def save_settings(self):
-        """Сохранение настроек"""
-        if self.parent() and hasattr(self.parent(), 'update_drawers'):
-            self.parent().update_drawers(self.drawers_spinbox.value())
+        main_window = self.window()  # это MainWindow
+        main_window.resize(self.res_width, self.res_height)
         self.close()
-    
+        
     def keyPressEvent(self, event):
         """Закрытие по Escape"""
         if event.key() == Qt.Key_Escape:
