@@ -6,7 +6,6 @@ from PyQt5.QtGui import *
 from settings import SettingsOverlay
 from drawers import DrawerButton, DrawerScrollArea
 
-backgroundColour="#2F4F4F"
 temp_id=0
 
 class BoardLabel(QLabel):
@@ -18,14 +17,14 @@ class BoardLabel(QLabel):
         # Стиль для доски
         self.setStyleSheet("""
             QLabel {
-                background-color: #FDF5E6;
-                border: 12px solid #8B4513;
-                border-radius: 10px;
-                font-size: 48px;
-                font-weight: bold;
-                color: #2F4F4F;
-                padding: 20px;
-            }
+            background-color: rgba(255, 255, 255, 200);
+            border: none;
+            border-radius: 20px;
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            padding: 20px;
+        }
         """)
 
 class MainWindow(QMainWindow):
@@ -37,12 +36,14 @@ class MainWindow(QMainWindow):
         # Устанавливаем общий стиль приложения
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #2F4F4F;
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                            stop: 0 #ffd1dc, stop: 1 #add8e6);
             }
         """)
         
         # Центральный виджет
         self.central_widget = QWidget()
+        
         self.setCentralWidget(self.central_widget)
         
         # Основной горизонтальный layout
@@ -64,31 +65,53 @@ class MainWindow(QMainWindow):
         right_panel = QWidget()
         right_panel.setMaximumWidth(250)
         right_panel.setMinimumWidth(200)
+
+        # --- Стиль панели: полупрозрачное стекло ---
+        right_panel.setStyleSheet("""
+            QWidget {
+                background-color: rgba(255, 255, 255, 180);  /* полупрозрачный белый */
+                border-radius: 20px;                         /* скругление */
+            }
+        """)
+
+        # Тень для глубины
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(25)
+        shadow.setColor(QColor(0, 0, 0, 40))
+        shadow.setOffset(0, 8)
+        right_panel.setGraphicsEffect(shadow)
+
+        # Layout с отступами
         right_layout = QVBoxLayout(right_panel)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Заголовок для панели ящиков
+        right_layout.setContentsMargins(12, 12, 12, 12)
+        right_layout.setSpacing(8)
+
+        # --- Заголовок "Пользователи" ---
         drawers_label = QLabel("Пользователи")
         drawers_label.setAlignment(Qt.AlignCenter)
         drawers_label.setStyleSheet("""
             QLabel {
-                color: #DEB887;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 10px;
-                background-color: #8B4513;
-                border-radius: 5px;
-                margin-bottom: 5px;
+                color: #1e1e2f;                 /* тёмно-синий/серый */
+                font-size: 18px;
+                font-weight: 600;                /* полужирный */
+                padding: 8px 0 12px 0;           /* отступы: сверху, справа, снизу, слева */
+                background-color: transparent;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);  /* лёгкая линия */
             }
         """)
         right_layout.addWidget(drawers_label)
-        
-        # Область прокрутки с ящиками
+
+        # --- Область прокрутки с ящиками ---
         self.drawer_scroll = DrawerScrollArea(temp_id)
         right_layout.addWidget(self.drawer_scroll)
         layout.addWidget(right_panel)
         
     def draw_left_panel(self, layout):
+        # Тень
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        shadow.setOffset(0, 5)
         
         # Левая часть (доска)
         left_panel = QWidget()
@@ -99,6 +122,13 @@ class MainWindow(QMainWindow):
         # Верхняя панель с кнопками
         top_panel = QWidget()
         top_panel.setMaximumHeight(70)  # Максимальная высота 70 пикселей
+        top_panel.setStyleSheet("""
+            QWidget {
+                background-color: rgba(255, 255, 255, 180);
+                border-radius: 15px;
+            }
+        """)
+        top_panel.setGraphicsEffect(shadow)
         top_layout = QHBoxLayout(top_panel)
         top_layout.setContentsMargins(0, 0, 0, 0)
         top_layout.setAlignment(Qt.AlignLeft)
@@ -120,19 +150,17 @@ class MainWindow(QMainWindow):
         # Стиль для верхних кнопок
         button_style = """
             QPushButton {
-                background-color: #DEB887;
-                border: 2px solid #8B4513;
-                border-radius: 25px;
-                font-size: 24px;
-                color: #2F4F4F;
+            background-color: transparent;
+            border: none;
+            border-radius: 25px;
+            font-size: 24px;
+            color: #333;
             }
             QPushButton:hover {
-                background-color: #FFE4C4;
-                border-color: #654321;
+                background-color: rgba(0, 0, 0, 0.05);
             }
             QPushButton:pressed {
-                background-color: #8B4513;
-                color: #DEB887;
+                background-color: rgba(0, 0, 0, 0.1);
             }
         """
         
@@ -150,6 +178,7 @@ class MainWindow(QMainWindow):
         # Доска
         self.board = BoardLabel()
         left_layout.addWidget(self.board)
+        
         
         layout.addWidget(left_panel, 1)  # stretch=1, чтобы занимал всё доступное пространство
     

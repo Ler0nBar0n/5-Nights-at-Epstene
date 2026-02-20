@@ -5,74 +5,78 @@ from PyQt5.QtGui import *
 
 
 class DrawerButton(QPushButton):
-    """Кнопка в виде ящика в шкафу"""
-    def __init__(self, text, id,  parent=None):
-        super().__init__(parent)
-        self.setText(text)
-        self.id=id
+    def __init__(self, text, id, parent=None):
+        super().__init__(text, parent)
+        self.id = id
         self.setMinimumHeight(60)
         self.setMaximumHeight(80)
-        
-        # Стиль для кнопок-ящиков
+        self.setCursor(Qt.PointingHandCursor)
+
+        # Основной стиль кнопки
         self.setStyleSheet("""
             QPushButton {
-                background-color: #8B4513;
-                color: #DEB887;
-                border: 2px solid #654321;
-                border-radius: 5px;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 10px;
+                background-color: white;
+                border: none;
+                border-radius: 12px;
+                font-size: 15px;
+                font-weight: 500;
+                color: #333;
+                padding: 8px 16px;
                 text-align: left;
-                margin: 2px;
+                margin: 4px 0px;
             }
             QPushButton:hover {
-                background-color: #A0522D;
-                border-color: #8B4513;
-                color: #FFE4C4;
+                background-color: #f5f5f7;
             }
             QPushButton:pressed {
-                background-color: #654321;
+                background-color: #e5e5ea;
             }
         """)
+
+        # Тень для кнопки
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(12)
+        shadow.setColor(QColor(0, 0, 0, 15))
+        shadow.setOffset(0, 2)
+        self.setGraphicsEffect(shadow)
 
 class DrawerScrollArea(QScrollArea):
     """Область прокрутки для ящиков"""
     def __init__(self, temp_id, parent=None):
         super().__init__(parent)
-        self.temp_id=temp_id
+        self.temp_id = temp_id
         self.setWidgetResizable(True)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff) #Отключает горизонтальную прокрутку. Ящики должны идти только сверху вниз
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded) #Включает вертикальную прокрутку только когда она нужна (когда ящиков больше, чем помещается на экране)
-        
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
         # Контейнер для кнопок
         self.container = QWidget()
-        self.container.setStyleSheet("background-color: #2F4F4F")
+        self.container.setStyleSheet("background-color: transparent;")
         self.layout = QVBoxLayout(self.container)
-        self.layout.setAlignment(Qt.AlignTop) #Выравнивает все кнопки по верхнему краю
-        self.layout.setSpacing(2) #Расстояние между кнопками в пикселях
+        self.layout.setAlignment(Qt.AlignTop)
+        self.layout.setSpacing(6)
         self.layout.setContentsMargins(0, 0, 0, 0)
-        
+
         self.setWidget(self.container)
-        
-        # Стиль для области прокрутки
+
+        # Стиль для области прокрутки и скроллбара
         self.setStyleSheet("""
             QScrollArea {
-                background-color: #2F4F4F;
+                background-color: transparent;
                 border: none;
             }
             QScrollBar:vertical {
-                background-color: #2F4F4F;
-                width: 12px;
-                border-radius: 6px;
+                background-color: transparent;
+                width: 6px;
+                border-radius: 3px;
             }
             QScrollBar::handle:vertical {
-                background-color: #DEB887;
-                border-radius: 6px;
-                min-height: 20px;
+                background-color: rgba(0, 0, 0, 0.2);
+                border-radius: 3px;
+                min-height: 30px;
             }
             QScrollBar::handle:vertical:hover {
-                background-color: #FFE4C4;
+                background-color: rgba(0, 0, 0, 0.3);
             }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;

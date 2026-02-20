@@ -23,19 +23,36 @@ class SettingsOverlay(QWidget):
         self.dark_overlay.setGeometry(0, 0, self.width(), self.height())
         self.dark_overlay.setStyleSheet("""
             QWidget {
-                background-color: rgba(47, 79, 79, 200);  /* Полупрозрачный фон */
+                background-color: rgba(0, 0, 0, 30); 
             }
         """)
         
         # Контейнер с настройками (центрированный)
         self.settings_container = QWidget(self)
         self.settings_container.setFixedSize(450, 350)
+        # Стиль контейнера
+        self.settings_container = QWidget(self)
+        self.settings_container.setFixedSize(450, 350)
+        self.settings_container.setStyleSheet("""
+            QWidget {
+                background-color: rgba(255, 255, 255, 220);
+                border-radius: 20px;
+            }
+        """)
         self.setup_settings_ui()
         
         # Поднимаем контейнер над затемнением
         self.settings_container.raise_()
     
     def setup_settings_ui(self):
+        
+        # Тень для контейнера
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(30)
+        shadow.setColor(QColor(0, 0, 0, 80))
+        shadow.setOffset(0, 10)
+        self.settings_container.setGraphicsEffect(shadow)
+        
         """Интерфейс настроек"""
         layout = QVBoxLayout(self.settings_container)
         layout.setContentsMargins(20, 20, 20, 20) # Отступы от краёв
@@ -46,55 +63,48 @@ class SettingsOverlay(QWidget):
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("""
             QLabel {
-                color: #DEB887;
+                color: #333;
                 font-size: 20px;
                 font-weight: bold;
-                padding: 10px; 
-                background-color: #8B4513;
-                border-radius: 5px;
+                padding: 10px;
             }
         """)
         layout.addWidget(title)
         
         # Контент настроек (в него упаковывать сами настройки)
         content = QWidget()
-        content.setStyleSheet("""
-            QWidget {
-                background-color: #FDF5E6;
-                border-radius: 10px; /*скругленные углы*/
-            }
-        """)
+        content.setStyleSheet("background-color: transparent;")
         content_layout = QVBoxLayout(content)
         content_layout.setSpacing(15)
-        content_layout.setContentsMargins(20, 20, 20, 20)
         
         
-        label_res = QLabel("Выберите разрешение:")
+        
         # Создаём выпадающий список (QComboBox)
         self.combo_res = QComboBox()
         resolutions = ["800x600", "1024x768", "1280x720", "1920x1080"]
         self.combo_res.addItems(resolutions)
         self.combo_res.setStyleSheet("""
             QComboBox {
-                color: #2F4F4F;              /* цвет текста в поле */
+                color: #333333;              /* цвет текста в поле */
                 font-size: 12pt;              /* размер шрифта */
                 font-weight: bold;             /* жирность (опционально) */
-                background-color: #FFF8DC;     /* фон поля */
-                border: 2px solid #8B4513;     /* рамка */
-                border-radius: 5px;            /* скругление */
-                padding: 5px;                  /* внутренние отступы */
+                background-color: rgba(255, 255, 255, 200);     /* фон поля */
+                border: 1px solid #cccccc;     /* рамка */
+                border-radius: 8px;            /* скругление */
+                padding: 8px;                  /* внутренние отступы */
             }
 
-
-            /* Альтернативный способ стилизации элементов (если нужны разные цвета) */
             QComboBox::item {
-                color: #2F4F4F;
-                background-color: #FFF8DC;
+                color: #333333;
+                background-color: white;
             }
 
             QComboBox::item:selected {
-                background-color: #DEB887;
-                color: #8B4513;
+                background-color: #007AFF;
+                color: white;
+            }
+            QComboBox::drop-down {
+                border: none;
             }
         """)
         content_layout.addWidget(self.combo_res)
@@ -110,17 +120,19 @@ class SettingsOverlay(QWidget):
         save_btn = QPushButton("Сохранить")
         save_btn.setStyleSheet("""
             QPushButton {
-                background-color: #8B4513;
-                color: #DEB887;
+                background-color: #007AFF;
+                color: white;
                 border: none;
-                border-radius: 5px;
+                border-radius: 8px;
                 padding: 10px 20px;
                 font-size: 14px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #A0522D;
-                color: #FFE4C4;
+                background-color: #005BBF;
+            }
+            QPushButton:pressed {
+                background-color: #004999;
             }
         """)
         save_btn.clicked.connect(self.save_settings)
@@ -128,16 +140,19 @@ class SettingsOverlay(QWidget):
         cancel_btn = QPushButton("Отмена")
         cancel_btn.setStyleSheet("""
             QPushButton {
-                background-color: #DEB887;
-                color: #2F4F4F;
-                border: 2px solid #8B4513;
-                border-radius: 5px;
+                background-color: rgba(255,255,255,200);
+                color: #333;
+                border: 1px solid #ccc;
+                border-radius: 8px;
                 padding: 10px 20px;
                 font-size: 14px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #FFE4C4;
+                background-color: rgba(255,255,255,255);
+            }
+            QPushButton:pressed {
+                background-color: #e0e0e0;
             }
         """)
         cancel_btn.clicked.connect(self.close)
@@ -147,15 +162,6 @@ class SettingsOverlay(QWidget):
         buttons_layout.addWidget(cancel_btn)
         layout.addLayout(buttons_layout)
         
-        # Стиль контейнера
-        self.settings_container.setStyleSheet("""
-            QWidget {
-                background-color: #2F4F4F;
-                border: 3px solid #8B4513;
-                border-radius: 15px;
-            }
-        """)
-    
     def change_resolution(self):
         # Получаем выбранную строку
         selected = self.combo_res.currentText()
@@ -178,15 +184,9 @@ class SettingsOverlay(QWidget):
         super().showEvent(event)
         self.raise_()
         self.settings_container.raise_()
-    
+        
     def save_settings(self):
         main_window = self.window()  # это MainWindow
         main_window.resize(self.res_width, self.res_height)
         self.close()
         
-    def keyPressEvent(self, event):
-        """Закрытие по Escape"""
-        if event.key() == Qt.Key_Escape:
-            self.close()
-        super().keyPressEvent(event)
-    
