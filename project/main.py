@@ -20,8 +20,6 @@ class BoardLabel(QLabel):
             background-color: rgba(255, 255, 255, 200);
             border: none;
             border-radius: 20px;
-            font-size: 48px;
-            font-weight: bold;
             color: #333;
             padding: 20px;
         }
@@ -30,8 +28,12 @@ class BoardLabel(QLabel):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+                
+        self.base_font_size = 20  # базовый размер в пикселях
+        self.ui_scale_factor = 1.0  # коэффициент масштабирования интерфейса
+
         self.setWindowTitle("Доска")
-        self.setGeometry(100, 100, 1000, 600)
+        self.setGeometry(100, 100, 1024, 768)
         
         # Устанавливаем общий стиль приложения
         self.setStyleSheet("""
@@ -43,7 +45,6 @@ class MainWindow(QMainWindow):
         
         # Центральный виджет
         self.central_widget = QWidget()
-        
         self.setCentralWidget(self.central_widget)
         
         # Основной горизонтальный layout
@@ -59,18 +60,17 @@ class MainWindow(QMainWindow):
         self.settings_overlay.hide()
         
         # Добавляем несколько ящиков для примера
-        self.update_drawers(10)  # Можно легко изменить количество ящиков
+        self.update_drawers(10)
     
     def draw_right_panel(self, layout):
-        right_panel = QWidget()
-        right_panel.setMaximumWidth(250)
-        right_panel.setMinimumWidth(200)
+        self.right_panel = QWidget()
+        self.right_panel.setMaximumWidth(250)
+        self.right_panel.setMinimumWidth(200)
 
-        # --- Стиль панели: полупрозрачное стекло ---
-        right_panel.setStyleSheet("""
+        self.right_panel.setStyleSheet("""
             QWidget {
-                background-color: rgba(255, 255, 255, 180);  /* полупрозрачный белый */
-                border-radius: 20px;                         /* скругление */
+                background-color: rgba(255, 255, 255, 180);
+                border-radius: 20px;
             }
         """)
 
@@ -79,32 +79,23 @@ class MainWindow(QMainWindow):
         shadow.setBlurRadius(25)
         shadow.setColor(QColor(0, 0, 0, 40))
         shadow.setOffset(0, 8)
-        right_panel.setGraphicsEffect(shadow)
+        self.right_panel.setGraphicsEffect(shadow)
 
         # Layout с отступами
-        right_layout = QVBoxLayout(right_panel)
-        right_layout.setContentsMargins(12, 12, 12, 12)
-        right_layout.setSpacing(8)
+        self.right_layout = QVBoxLayout(self.right_panel)
+        self.right_layout.setContentsMargins(12, 12, 12, 12)
+        self.right_layout.setSpacing(8)
 
-        # --- Заголовок "Пользователи" ---
-        drawers_label = QLabel("Пользователи")
-        drawers_label.setAlignment(Qt.AlignCenter)
-        drawers_label.setStyleSheet("""
-            QLabel {
-                color: #1e1e2f;                 /* тёмно-синий/серый */
-                font-size: 18px;
-                font-weight: 600;                /* полужирный */
-                padding: 8px 0 12px 0;           /* отступы: сверху, справа, снизу, слева */
-                background-color: transparent;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.1);  /* лёгкая линия */
-            }
-        """)
-        right_layout.addWidget(drawers_label)
+        # Заголовок "Пользователи"
+        self.drawers_label = QLabel("Пользователи")
+        self.drawers_label.setAlignment(Qt.AlignCenter)
+        self.update_drawers_label_style()
+        self.right_layout.addWidget(self.drawers_label)
 
-        # --- Область прокрутки с ящиками ---
+        # Область прокрутки с ящиками
         self.drawer_scroll = DrawerScrollArea(temp_id)
-        right_layout.addWidget(self.drawer_scroll)
-        layout.addWidget(right_panel)
+        self.right_layout.addWidget(self.drawer_scroll)
+        layout.addWidget(self.right_panel)
         
     def draw_left_panel(self, layout):
         # Тень
@@ -114,77 +105,151 @@ class MainWindow(QMainWindow):
         shadow.setOffset(0, 5)
         
         # Левая часть (доска)
-        left_panel = QWidget()
-        left_layout = QVBoxLayout(left_panel)
-        left_layout.setContentsMargins(0, 0, 0, 0)
-        left_layout.setSpacing(10)
+        self.left_panel = QWidget()
+        self.left_layout = QVBoxLayout(self.left_panel)
+        self.left_layout.setContentsMargins(0, 0, 0, 0)
+        self.left_layout.setSpacing(10)
         
         # Верхняя панель с кнопками
-        top_panel = QWidget()
-        top_panel.setMaximumHeight(70)  # Максимальная высота 70 пикселей
-        top_panel.setStyleSheet("""
+        self.top_panel = QWidget()
+        self.top_panel.setMaximumHeight(70)
+        self.top_panel.setStyleSheet("""
             QWidget {
                 background-color: rgba(255, 255, 255, 180);
                 border-radius: 15px;
             }
         """)
-        top_panel.setGraphicsEffect(shadow)
-        top_layout = QHBoxLayout(top_panel)
-        top_layout.setContentsMargins(0, 0, 0, 0)
-        top_layout.setAlignment(Qt.AlignLeft)
+        self.top_panel.setGraphicsEffect(shadow)
+        self.top_layout = QHBoxLayout(self.top_panel)
+        self.top_layout.setContentsMargins(0, 0, 0, 0)
+        self.top_layout.setAlignment(Qt.AlignLeft)
         
         # Создаем кнопки
-        settings_btn = QPushButton("⚙️")
-        settings_btn.clicked.connect(self.open_settings)
-        settings_btn.setToolTip("Настройки") #Подсказка при наведении
-        settings_btn.setFixedSize(50, 50)
+        self.settings_btn = QPushButton("⚙️")
+        self.settings_btn.clicked.connect(self.open_settings)
+        self.settings_btn.setToolTip("Настройки")
         
-        plus_btn = QPushButton("➕")
-        plus_btn.setToolTip("Добавить")
-        plus_btn.setFixedSize(50, 50)
+        self.plus_btn = QPushButton("➕")
+        self.plus_btn.setToolTip("Добавить")
         
-        menu_btn = QPushButton("☰")
-        menu_btn.setToolTip("Меню")
-        menu_btn.setFixedSize(50, 50)
+        self.menu_btn = QPushButton("☰")
+        self.menu_btn.setToolTip("Меню")
         
-        # Стиль для верхних кнопок
-        button_style = """
-            QPushButton {
-            background-color: transparent;
-            border: none;
-            border-radius: 25px;
-            font-size: 24px;
-            color: #333;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 0, 0, 0.05);
-            }
-            QPushButton:pressed {
-                background-color: rgba(0, 0, 0, 0.1);
-            }
-        """
+        # Устанавливаем стиль для кнопок
+        self.update_top_buttons_style()
         
-        settings_btn.setStyleSheet(button_style)
-        plus_btn.setStyleSheet(button_style)
-        menu_btn.setStyleSheet(button_style)
+        self.top_layout.addWidget(self.settings_btn)
+        self.top_layout.addWidget(self.plus_btn)
+        self.top_layout.addWidget(self.menu_btn)
         
-        top_layout.addWidget(settings_btn)
-        top_layout.addWidget(plus_btn)
-        top_layout.addWidget(menu_btn)
-        
-        left_layout.addWidget(top_panel)
-        
+        self.left_layout.addWidget(self.top_panel)
         
         # Доска
         self.board = BoardLabel()
-        left_layout.addWidget(self.board)
+        self.left_layout.addWidget(self.board)
         
+        layout.addWidget(self.left_panel, 1)
+    
+    def update_top_buttons_style(self):
+        """Обновить стиль верхних кнопок с учетом масштаба"""
+        size = int(50 * self.ui_scale_factor)
+        font_size = int(24 * self.ui_scale_factor)
         
-        layout.addWidget(left_panel, 1)  # stretch=1, чтобы занимал всё доступное пространство
+        self.settings_btn.setFixedSize(size, size)
+        self.plus_btn.setFixedSize(size, size)
+        self.menu_btn.setFixedSize(size, size)
+        
+        button_style = f"""
+            QPushButton {{
+                background-color: transparent;
+                border: none;
+                border-radius: {size//2}px;
+                font-size: {font_size}px;
+                color: #333;
+            }}
+            QPushButton:hover {{
+                background-color: rgba(0, 0, 0, 0.05);
+            }}
+            QPushButton:pressed {{
+                background-color: rgba(0, 0, 0, 0.1);
+            }}
+        """
+        
+        self.settings_btn.setStyleSheet(button_style)
+        self.plus_btn.setStyleSheet(button_style)
+        self.menu_btn.setStyleSheet(button_style)
+    
+    def update_drawers_label_style(self):
+        """Обновить стиль заголовка пользователей"""
+        font_size = int(18 * self.ui_scale_factor)
+        padding = int(8 * self.ui_scale_factor)
+        
+        self.drawers_label.setStyleSheet(f"""
+            QLabel {{
+                color: #1e1e2f;
+                font-size: {font_size}px;
+                font-weight: 600;
+                padding: {padding}px 0 {padding*1.5}px 0;
+                background-color: transparent;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            }}
+        """)
+    
+    def update_right_panel_size(self):
+        """Обновить размеры правой панели"""
+        max_width = int(250 * self.ui_scale_factor)
+        min_width = int(200 * self.ui_scale_factor)
+        self.right_panel.setMaximumWidth(max_width)
+        self.right_panel.setMinimumWidth(min_width)
+        
+        # Обновляем отступы
+        margin = int(12 * self.ui_scale_factor)
+        self.right_layout.setContentsMargins(margin, margin, margin, margin)
+        self.right_layout.setSpacing(int(8 * self.ui_scale_factor))
+    
+    def update_left_panel_spacing(self):
+        """Обновить отступы в левой панели"""
+        self.left_layout.setSpacing(int(10 * self.ui_scale_factor))
+        
+        # Обновляем высоту верхней панели
+        self.top_panel.setMaximumHeight(int(70 * self.ui_scale_factor))
+        
+        # Обновляем радиус скругления
+        radius = int(15 * self.ui_scale_factor)
+        self.top_panel.setStyleSheet(f"""
+            QWidget {{
+                background-color: rgba(255, 255, 255, 180);
+                border-radius: {radius}px;
+            }}
+        """)
+    
+    def apply_ui_scale(self):
+        """Применить масштабирование интерфейса"""
+        # Обновляем правую панель
+        self.update_right_panel_size()
+        
+        # Обновляем заголовок
+        self.update_drawers_label_style()
+        
+        # Обновляем верхние кнопки
+        self.update_top_buttons_style()
+        
+        # Обновляем отступы в левой панели
+        self.update_left_panel_spacing()
+        
+        # Обновляем шрифты в кнопках ящиков через DrawerButton
+        DrawerButton.update_scale_factor(self.ui_scale_factor)
+        
+        # Перерисовываем все кнопки в drawer_scroll
+        if hasattr(self, 'drawer_scroll'): #проверка что этот атрибут есть
+            for i in range(self.drawer_scroll.layout.count()):
+                item = self.drawer_scroll.layout.itemAt(i)
+                if item and item.widget():
+                    button = item.widget()
+                    button.update_style()
     
     def open_settings(self):
         """Открыть окно настроек внутри главного окна"""
-        # Обновляем размер оверлея под размер центрального виджета
         self.settings_overlay.setGeometry(0, 0, self.central_widget.width(), self.central_widget.height())
         self.settings_overlay.show()
         self.settings_overlay.raise_()
@@ -193,12 +258,11 @@ class MainWindow(QMainWindow):
         """Обновляем размер оверлея при изменении размера окна"""
         super().resizeEvent(event)
         if hasattr(self, 'settings_overlay') and self.settings_overlay.isVisible():
-            self.settings_overlay.setGeometry(0, 0,  self.central_widget.width(), self.central_widget.height())
+            self.settings_overlay.setGeometry(0, 0, self.central_widget.width(), self.central_widget.height())
     
     def update_drawers(self, count):
         """Обновить количество ящиков"""
         self.drawer_scroll.clear_drawers()
-        
         
         # Названия ящиков для примера
         drawer_names = [
