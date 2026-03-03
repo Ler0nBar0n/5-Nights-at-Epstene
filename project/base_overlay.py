@@ -5,14 +5,17 @@ from PyQt5.QtGui import *
 
 class BaseOverlay(QWidget):
     """Родительский класс для остальных оверлеев"""
-    def __init__(self, parent=None):
+    def __init__(self, scale_manager, parent=None):
         super().__init__(parent)
+        self.scale_manager = scale_manager
+        self.scale_manager.scaleFactorChanged.connect(self.update_style)
+
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Widget)
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setAttribute(Qt.WA_TranslucentBackground, False)
         
-        self.base_width=450
-        self.base_height=350
+        self.base_width = 450
+        self.base_height = 350
         
         # Затемняющий слой (полупрозрачный фон)
         self.dark_overlay = QWidget(self)
@@ -37,8 +40,10 @@ class BaseOverlay(QWidget):
         # Поднимаем контейнер над затемнением
         self.content_container.raise_()
         
-    def setup_ui(self):
+        # Начальное применение стиля
+        self.update_style()
         
+    def setup_ui(self):
         # Тень для контейнера
         self.shadow = QGraphicsDropShadowEffect()
         self.shadow.setBlurRadius(30)
@@ -134,24 +139,22 @@ class BaseOverlay(QWidget):
         )
         
     def showEvent(self, event):
-        """При показе поднимаем наверх и меняем масштаб интерфейса"""
+        """При показе поднимаем наверх"""
         super().showEvent(event)
-        self.change_scale()
         self.raise_()
         self.content_container.raise_()
         
-    def change_scale(self):
-        """Применить текущий масштаб из главного окна ко всем элементам оверлея"""
-        main_window = self.window()
-        sf = getattr(main_window, 'ui_scale_factor', 1.0)
+    def update_style(self):
+        """Применить текущий масштаб ко всем элементам оверлея"""
+        sf = self.scale_manager.factor
 
         # Размер контейнера
-        container_width = int(self.base_width * sf)
-        container_height = int(self.base_height * sf)
+        container_width = self.scale_manager.scale_value(self.base_width)
+        container_height = self.scale_manager.scale_value(self.base_height)
         self.content_container.setFixedSize(container_width, container_height)
 
         # Радиус скругления контейнера
-        radius = int(20 * sf)
+        radius = self.scale_manager.scale_value(20)
         self.content_container.setStyleSheet(f"""
             QWidget {{
                 background-color: rgba(255, 255, 255, 220);
@@ -160,20 +163,20 @@ class BaseOverlay(QWidget):
         """)
 
         # Тень
-        self.shadow.setBlurRadius(int(30 * sf))
-        self.shadow.setOffset(0, int(10 * sf))
+        self.shadow.setBlurRadius(self.scale_manager.scale_value(30))
+        self.shadow.setOffset(0, self.scale_manager.scale_value(10))
 
         # Отступы в layout
-        margin = int(20 * sf)
-        spacing = int(15 * sf)
+        margin = self.scale_manager.scale_value(20)
+        spacing = self.scale_manager.scale_value(15)
         layout = self.content_container.layout()
         if layout:
             layout.setContentsMargins(margin, margin, margin, margin)
             layout.setSpacing(spacing)
 
         # Заголовок
-        title_font_size = int(20 * sf)
-        title_padding = int(10 * sf)
+        title_font_size = self.scale_manager.scale_value(20)
+        title_padding = self.scale_manager.scale_value(10)
         self.title.setStyleSheet(f"""
             QLabel {{
                 color: #333;
@@ -184,10 +187,10 @@ class BaseOverlay(QWidget):
         """)
 
         # Кнопки
-        btn_font_size = int(14 * sf)
-        btn_padding_y = int(10 * sf)
-        btn_padding_x = int(20 * sf)
-        btn_radius = int(8 * sf)
+        btn_font_size = self.scale_manager.scale_value(14)
+        btn_padding_y = self.scale_manager.scale_value(10)
+        btn_padding_x = self.scale_manager.scale_value(20)
+        btn_radius = self.scale_manager.scale_value(8)
 
         self.save_btn.setStyleSheet(f"""
             QPushButton {{
@@ -227,5 +230,4 @@ class BaseOverlay(QWidget):
 
         self.resizeEvent(None)  # обновить центровку
     
-    # def save_changes(self):
-    
+    # def save_changes(self):  # будет переопределён в наследниках

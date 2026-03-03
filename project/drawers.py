@@ -3,32 +3,20 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
-
 class DrawerButton(QPushButton):
-    # Классовая переменная для хранения коэффициента масштабирования
-    scale_factor = 1.0
-    
-    def __init__(self, text, id, parent=None):
+    def __init__(self, text, id, scale_manager, parent=None):
         super().__init__(text, parent)
         self.id = id
-        self.setMinimumHeight(int(60 * DrawerButton.scale_factor))
-        self.setMaximumHeight(int(80 * DrawerButton.scale_factor))
+        self.scale_manager = scale_manager
+        self.scale_manager.scaleFactorChanged.connect(self.update_style)
         self.setCursor(Qt.PointingHandCursor)
         self.update_style()
-        
-        # Тень для кнопки
-        self.update_shadow()
-    
-    @classmethod
-    def update_scale_factor(cls, factor):
-        """Обновить коэффициент масштабирования для всех кнопок"""
-        cls.scale_factor = factor
     
     def update_shadow(self):
         """Обновить тень с учетом масштаба"""
         shadow = QGraphicsDropShadowEffect()
-        blur = int(12 * DrawerButton.scale_factor)
-        offset = int(2 * DrawerButton.scale_factor)
+        blur = self.scale_manager.scale_value(12)
+        offset = self.scale_manager.scale_value(2)
         shadow.setBlurRadius(blur)
         shadow.setColor(QColor(0, 0, 0, 15))
         shadow.setOffset(0, offset)
@@ -36,11 +24,12 @@ class DrawerButton(QPushButton):
     
     def update_style(self):
         """Обновить стиль кнопки с учетом масштаба"""
-        font_size = int(15 * DrawerButton.scale_factor)
-        padding_x = int(16 * DrawerButton.scale_factor)
-        padding_y = int(8 * DrawerButton.scale_factor)
-        margin = int(4 * DrawerButton.scale_factor)
-        radius = int(12 * DrawerButton.scale_factor)
+        sf = self.scale_manager.factor
+        font_size = self.scale_manager.scale_value(15)
+        padding_x = self.scale_manager.scale_value(16)
+        padding_y = self.scale_manager.scale_value(8)
+        margin = self.scale_manager.scale_value(4)
+        radius = self.scale_manager.scale_value(12)
         
         self.setStyleSheet(f"""
             QPushButton {{
@@ -63,17 +52,20 @@ class DrawerButton(QPushButton):
         """)
         
         # Обновляем минимальную и максимальную высоту
-        self.setMinimumHeight(int(60 * DrawerButton.scale_factor))
-        self.setMaximumHeight(int(80 * DrawerButton.scale_factor))
+        self.setMinimumHeight(self.scale_manager.scale_value(60))
+        self.setMaximumHeight(self.scale_manager.scale_value(80))
         
         # Обновляем тень
         self.update_shadow()
 
 class DrawerScrollArea(QScrollArea):
     """Область прокрутки для ящиков"""
-    def __init__(self, temp_id, parent=None):
+    def __init__(self, temp_id, scale_manager, parent=None):
         super().__init__(parent)
         self.temp_id = temp_id
+        self.scale_manager = scale_manager
+        self.scale_manager.scaleFactorChanged.connect(self.update_scroll_style)
+        
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -93,10 +85,10 @@ class DrawerScrollArea(QScrollArea):
     
     def update_scroll_style(self):
         """Обновить стиль скроллбара с учетом масштаба"""
-        scale = DrawerButton.scale_factor
-        scroll_width = int(6 * scale)
-        scroll_radius = int(3 * scale)
-        min_height = int(30 * scale)
+        scale = self.scale_manager.factor
+        scroll_width = self.scale_manager.scale_value(6)
+        scroll_radius = self.scale_manager.scale_value(3)
+        min_height = self.scale_manager.scale_value(30)
         
         self.setStyleSheet(f"""
             QScrollArea {{
@@ -126,7 +118,7 @@ class DrawerScrollArea(QScrollArea):
 
     def add_drawer(self, text):
         """Добавить новый ящик"""
-        button = DrawerButton(text, self.temp_id)
+        button = DrawerButton(text, self.temp_id, self.scale_manager)
         self.temp_id += 1
         self.layout.addWidget(button)
         return button

@@ -7,8 +7,8 @@ from base_overlay import BaseOverlay
 class CreateTaskOverlay(BaseOverlay):
     """Оверлей создания задачи"""
     
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, scale_manager, parent=None):
+        super().__init__(scale_manager, parent)
         self.title.setText("Создать задачу")
         
     def setup_ui(self):
@@ -26,23 +26,22 @@ class CreateTaskOverlay(BaseOverlay):
         self.task_desc_edit.setPlaceholderText("Пояснение")
         self.content_layout.insertWidget(1, self.task_desc_edit)
         
-    def change_scale(self):
+    def update_style(self):
         """Применить масштабирование ко всем элементам оверлея"""
-        super().change_scale()
+        super().update_style()
         
-        main_window = self.window()
-        sf = getattr(main_window, 'ui_scale_factor', 1.0)
-        scroll_width = int(6 * sf)
-        scroll_radius = int(3 * sf)
-        min_height = int(30 * sf)
+        sf = self.scale_manager.factor
+        scroll_width = self.scale_manager.scale_value(6)
+        scroll_radius = self.scale_manager.scale_value(3)
+        min_height = self.scale_manager.scale_value(30)
         # Базовый стиль для полей ввода
         base_input_style = f"""
             QLineEdit, QTextEdit {{
                 background-color: white;
                 border: 1px solid #cccccc;
-                border-radius: {int(8 * sf)}px;
-                padding: {int(8 * sf)}px;
-                font-size: {int(16 * sf)}px;
+                border-radius: {self.scale_manager.scale_value(8)}px;
+                padding: {self.scale_manager.scale_value(8)}px;
+                font-size: {self.scale_manager.scale_value(16)}px;
                 font-weight: bold;
                 color: #333333;
             }}
@@ -76,12 +75,12 @@ class CreateTaskOverlay(BaseOverlay):
         """
         
         # Настройка однострочного поля
-        self.task_title_edit.setFixedHeight(int(40 * sf))
+        self.task_title_edit.setFixedHeight(self.scale_manager.scale_value(40))
         self.task_title_edit.setStyleSheet(base_input_style)
         
         # Настройка многострочного поля
-        self.task_desc_edit.setMinimumHeight(int(80 * sf))
-        self.task_desc_edit.setMaximumHeight(int(150 * sf))
+        self.task_desc_edit.setMinimumHeight(self.scale_manager.scale_value(80))
+        self.task_desc_edit.setMaximumHeight(self.scale_manager.scale_value(150))
         self.task_desc_edit.setStyleSheet(base_input_style)
         
     def save_changes(self):

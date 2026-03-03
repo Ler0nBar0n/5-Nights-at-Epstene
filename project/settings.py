@@ -7,9 +7,10 @@ from base_overlay import BaseOverlay
 class SettingsOverlay(BaseOverlay):
     """Оверлей настроек"""
     
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, scale_manager, parent=None):
+        super().__init__(scale_manager, parent)
         self.title.setText("Настройки")
+        self.new_scale = 1.0  # будет установлено при показе
         
     def setup_ui(self):
         # Базовый интерфейс
@@ -32,22 +33,20 @@ class SettingsOverlay(BaseOverlay):
         
         self.content_layout.addStretch()
         
-        #Инициализация переменных из текущего выбора
+        # Инициализация переменных из текущего выбора
         self.change_resolution()
         self.change_size()
         
-    def change_scale(self):
-        """Применить масштаб из главного окна ко всем элементам оверлея"""
-        super().change_scale()
+    def update_style(self):
+        """Применить масштаб из менеджера ко всем элементам оверлея"""
+        super().update_style()
         
-        # Получаем коэффициент масштабирования из главного окна
-        main_window = self.window()
-        sf = getattr(main_window, 'ui_scale_factor', 1.0)
+        sf = self.scale_manager.factor
         
         # Масштабируем комбобоксы
-        combo_font_size = int(16 * sf)
-        combo_padding = int(8 * sf)
-        combo_radius = int(8 * sf)
+        combo_font_size = self.scale_manager.scale_value(16)
+        combo_padding = self.scale_manager.scale_value(8)
+        combo_radius = self.scale_manager.scale_value(8)
         combo_style = f"""
             QComboBox {{
                 color: #333333;
@@ -75,9 +74,8 @@ class SettingsOverlay(BaseOverlay):
         
     def showEvent(self, event):
         super().showEvent(event)
-        # Синхронизируем комбобокс размера с текущим масштабом главного окна
-        main_window = self.window()
-        current_scale = getattr(main_window, 'ui_scale_factor', 1.0)
+        # Синхронизируем комбобокс размера с текущим масштабом
+        current_scale = self.scale_manager.factor
         
         # Определяем индекс по значению scale
         if current_scale <= 0.9:
@@ -95,20 +93,15 @@ class SettingsOverlay(BaseOverlay):
         """Обработка изменения размера интерфейса"""
         selected = self.combo_size.currentText()
         if selected == "Крошечный":
-            self.ui_scale = 0.8
-            self.font_size = 16
+            self.new_scale = 0.8
         elif selected == "Маленький":
-            self.ui_scale = 1.0
-            self.font_size = 20
+            self.new_scale = 1.0
         elif selected == "Средний":
-            self.ui_scale = 1.2
-            self.font_size = 24
+            self.new_scale = 1.2
         elif selected == "Большой":
-            self.ui_scale = 1.5
-            self.font_size = 30
+            self.new_scale = 1.5
         else:  # "Маленький" по умолчанию
-            self.ui_scale = 1.0
-            self.font_size = 20
+            self.new_scale = 1.0
             
     def change_resolution(self):
         """Обработка изменения разрешения"""
@@ -120,9 +113,6 @@ class SettingsOverlay(BaseOverlay):
         main_window = self.window()
         # Изменяем размер окна
         main_window.resize(self.res_width, self.res_height)
-        # Изменяем масштаб интерфейса
-        main_window.base_font_size = self.font_size
-        main_window.ui_scale_factor = self.ui_scale
-        main_window.apply_ui_scale()
+        # Изменяем масштаб интерфейса через менеджер
+        self.scale_manager.factor = self.new_scale
         self.close()
-    

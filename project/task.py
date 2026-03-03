@@ -4,12 +4,13 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from base_overlay import BaseOverlay
 
-
 class TaskWidget(QFrame):
-    def __init__(self, title, description, parent=None):
+    def __init__(self, title, description, scale_manager, parent=None):
         super().__init__(parent)
         self.title = title
         self.description = description
+        self.scale_manager = scale_manager
+        self.scale_manager.scaleFactorChanged.connect(self.update_style)
         self.dragging = False
         self.drag_position = QPoint()
         self.setup_ui()
@@ -103,20 +104,19 @@ class TaskWidget(QFrame):
             event.accept()
             
     def update_style(self):
-        main_window = self.window()
-        sf = getattr(main_window, 'ui_scale_factor', 1.0)
+        sf = self.scale_manager.factor
 
         # Общий стиль виджета
         self.setStyleSheet(f"""
             TaskWidget {{
                 background-color: #f5f5f7;
                 border: 1px solid #ccc;
-                border-radius: {int(3 * sf)}px;
+                border-radius: {self.scale_manager.scale_value(3)}px;
             }}
         """)
 
         # Пин
-        pin_size = int(20 * sf)
+        pin_size = self.scale_manager.scale_value(20)
         self.pin.setFixedSize(pin_size, pin_size)
         self.pin.setStyleSheet(f"""
             QLabel {{
@@ -127,31 +127,31 @@ class TaskWidget(QFrame):
 
         # Шрифт заголовка
         title_font = QFont()
-        title_font.setPointSize(int(14 * sf))
+        title_font.setPointSize(self.scale_manager.scale_value(14))
         title_font.setBold(True)
         self.title_edit.setFont(title_font)
 
         # Описание (стиль)
-        desc_font_size = int(12 * sf)
+        desc_font_size = self.scale_manager.scale_value(12)
         self.desc_label.setStyleSheet(f"font-size: {desc_font_size}px; color: #666;")
 
         # Отступы внутри виджета
-        margin = int(5 * sf)
+        margin = self.scale_manager.scale_value(5)
         self.layout().setContentsMargins(margin, margin, margin, margin)
-        self.layout().setSpacing(int(5 * sf))
+        self.layout().setSpacing(self.scale_manager.scale_value(5))
 
         # Фиксированные размеры виджета
-        self.setFixedWidth(int(100 * sf))
-        self.setFixedHeight(int(140 * sf))
+        self.setFixedWidth(self.scale_manager.scale_value(100))
+        self.setFixedHeight(self.scale_manager.scale_value(140))
 
         # Доступная ширина для текста
         text_width = self.width() - 2 * margin
         self.title_edit.setFixedWidth(text_width)
 
-        # Параметры скроллбара (как в DrawerScrollArea)
-        scroll_width = int(6 * sf)
-        scroll_radius = int(3 * sf)
-        min_height = int(30 * sf)
+        # Параметры скроллбара
+        scroll_width = self.scale_manager.scale_value(6)
+        scroll_radius = self.scale_manager.scale_value(3)
+        min_height = self.scale_manager.scale_value(30)
 
         # Применяем стиль к самому QTextEdit (фон и отступы)
         self.title_edit.setStyleSheet("""
@@ -191,45 +191,43 @@ class TaskWidget(QFrame):
 
 class TaskFactory:
     @staticmethod
-    def create_task(parent, title, description):
-        return TaskWidget(title, description, parent)
+    def create_task(parent, title, description, scale_manager):
+        return TaskWidget(title, description, scale_manager, parent)
 
 
 class ViewTaskOverlay(BaseOverlay):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, scale_manager, parent=None):
+        super().__init__(scale_manager, parent)
         self.title.setText("Просмотр задачи")
-        self.setup_content()
 
-    def setup_content(self):
-        main_window = self.window()
-        sf = getattr(main_window, 'ui_scale_factor', 1.0)
+    def setup_ui(self):
+        super().setup_ui()
         self.save_btn.setText("Принять")
         self.cancel_btn.setText("Закрыть")
 
         self.view_title = QLabel()
         self.view_title.setWordWrap(True)
-        self.view_title.setStyleSheet(f"font-weight: bold; font-size: {int(18*sf)}px;")
+        # Стиль будет обновлён в update_style
 
         self.view_desc = QLabel()
         self.view_desc.setWordWrap(True)
-        self.view_desc.setStyleSheet(f"font-size: {int(16*sf)}px;")
-
+        
         self.content_layout.insertWidget(0, self.view_title)
         self.content_layout.insertWidget(1, self.view_desc)
         self.content_layout.addStretch()
+
+        self.update_style()  # принудительно применим стиль для новых элементов
 
     def set_task_data(self, title, description):
         self.view_title.setText(title)
         self.view_desc.setText(description)
 
-    def change_scale(self):
-        super().change_scale()
-        main_window = self.window()
-        sf = getattr(main_window, 'ui_scale_factor', 1.0)
+    def update_style(self):
+        super().update_style()
+        sf = self.scale_manager.factor
 
-        title_font_size = int(18 * sf)
-        desc_font_size = int(16 * sf)
+        title_font_size = self.scale_manager.scale_value(18)
+        desc_font_size = self.scale_manager.scale_value(16)
         self.view_title.setStyleSheet(f"font-weight: bold; font-size: {title_font_size}px;")
         self.view_desc.setStyleSheet(f"font-size: {desc_font_size}px;")
 

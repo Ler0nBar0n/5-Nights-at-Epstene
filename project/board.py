@@ -20,8 +20,11 @@ class BoardLabel(QLabel):
 
 class Board(QWidget):
     """Доска с фоновым лейблом и контейнером задач поверх"""
-    def __init__(self, parent=None):
+    def __init__(self, scale_manager, parent=None):
         super().__init__(parent)
+        self.scale_manager = scale_manager
+        self.scale_manager.scaleFactorChanged.connect(self.update_label_style)
+        
         self.setStyleSheet("""
             QWidget {
                 background-color: transparent;
@@ -42,7 +45,9 @@ class Board(QWidget):
 
         # Устанавливаем геометрию для обоих виджетов
         self.update_geometry()
-
+        
+        # Начальное применение стиля
+        self.update_label_style()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -61,16 +66,12 @@ class Board(QWidget):
         task.show()
         task.raise_()  # поднимаем над другими задачами (но они и так в контейнере)
 
-    def update_tasks_style(self):
-        """Обновить стиль всех задач (при изменении масштаба)"""
-        for task in self.tasks:
-            task.update_style()
-
-    def update_label_style(self, sf):
+    def update_label_style(self):
         """Обновить стиль фонового лейбла с учётом масштаба"""
-        font_size = int(18 * sf)
-        padding = int(20 * sf)
-        radius = int(20 * sf)
+        sf = self.scale_manager.factor
+        font_size = self.scale_manager.scale_value(18)
+        padding = self.scale_manager.scale_value(20)
+        radius = self.scale_manager.scale_value(20)
         self.board_label.setStyleSheet(f"""
             QLabel {{
                 background-color: rgba(255, 255, 255, 150);
