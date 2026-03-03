@@ -64,13 +64,29 @@ class TaskWidget(QFrame):
     def pin_mouse_press(self, event):
         if event.button() == Qt.LeftButton:
             self.dragging = True
-            self.drag_position = event.globalPos() - self.frameGeometry().topLeft()
+            # Запоминаем смещение курсора внутри виджета
+            self.drag_offset = event.pos()
             self.pin.setCursor(Qt.ClosedHandCursor)
             event.accept()
 
     def pin_mouse_move(self, event):
         if self.dragging:
-            self.move(event.globalPos() - self.drag_position)
+            parent = self.parent()
+            if parent is None:
+                return
+
+            # Позиция курсора в координатах родителя
+            parent_pos = self.mapToParent(event.pos())
+            # Вычисляем новую позицию верхнего левого угла виджета
+            new_pos = parent_pos - self.drag_offset
+
+            # Ограничиваем перемещение в пределах родительского контейнера
+            x = new_pos.x()
+            y = new_pos.y()
+            x = max(0, min(x, parent.width() - self.width()))
+            y = max(0, min(y, parent.height() - self.height()))
+
+            self.move(x, y)
             event.accept()
 
     def pin_mouse_release(self, event):
@@ -187,7 +203,7 @@ class ViewTaskOverlay(BaseOverlay):
 
     def setup_content(self):
         main_window = self.window()
-        sf = getattr(main_window, 'ui_sf_factor', 1.0)
+        sf = getattr(main_window, 'ui_scale_factor', 1.0)
         self.save_btn.setText("Принять")
         self.cancel_btn.setText("Закрыть")
 
@@ -207,10 +223,10 @@ class ViewTaskOverlay(BaseOverlay):
         self.view_title.setText(title)
         self.view_desc.setText(description)
 
-    def change_sf(self):
-        super().change_sf()
+    def change_scale(self):
+        super().change_scale()
         main_window = self.window()
-        sf = getattr(main_window, 'ui_sf_factor', 1.0)
+        sf = getattr(main_window, 'ui_scale_factor', 1.0)
 
         title_font_size = int(18 * sf)
         desc_font_size = int(16 * sf)
