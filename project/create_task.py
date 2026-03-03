@@ -7,6 +7,8 @@ from base_overlay import BaseOverlay
 class CreateTaskOverlay(BaseOverlay):
     """Оверлей создания задачи"""
     
+    taskCreated = pyqtSignal(str, str)  # title, description
+    
     def __init__(self, scale_manager, parent=None):
         super().__init__(scale_manager, parent)
         self.title.setText("Создать задачу")
@@ -82,12 +84,10 @@ class CreateTaskOverlay(BaseOverlay):
         self.task_desc_edit.setMinimumHeight(self.scale_manager.scale_value(80))
         self.task_desc_edit.setMaximumHeight(self.scale_manager.scale_value(150))
         self.task_desc_edit.setStyleSheet(base_input_style)
-        
+    
     def save_changes(self):
         title = self.task_title_edit.text()
         description = self.task_desc_edit.toPlainText()
-        if title.strip():  # Проверка, что заголовок не пустой
-            main_window = self.window()
-            if hasattr(main_window, 'create_task'):
-                main_window.create_task(title, description)
+        if title.strip():
+            self.taskCreated.emit(title, description)
         self.close()

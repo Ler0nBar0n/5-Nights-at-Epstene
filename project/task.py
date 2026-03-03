@@ -5,6 +5,9 @@ from PyQt5.QtGui import *
 from base_overlay import BaseOverlay
 
 class TaskWidget(QFrame):
+    
+    viewRequested = pyqtSignal(str, str)  # title, description
+    
     def __init__(self, title, description, scale_manager, parent=None):
         super().__init__(parent)
         self.title = title
@@ -95,14 +98,12 @@ class TaskWidget(QFrame):
             self.dragging = False
             self.pin.setCursor(Qt.OpenHandCursor)
             event.accept()
-
+    
     def widget_mouse_press(self, event):
-        if event.button() == Qt.LeftButton:
-            main_window = self.window()
-            if hasattr(main_window, 'open_view_task'):
-                main_window.open_view_task(self.title, self.description)
-            event.accept()
-            
+            if event.button() == Qt.LeftButton:
+                self.viewRequested.emit(self.title, self.description)
+                event.accept()
+    
     def update_style(self):
         sf = self.scale_manager.factor
 
@@ -127,7 +128,7 @@ class TaskWidget(QFrame):
 
         # Шрифт заголовка
         title_font = QFont()
-        title_font.setPointSize(self.scale_manager.scale_value(14))
+        title_font.setPointSize(self.scale_manager.scale_value(10))
         title_font.setBold(True)
         self.title_edit.setFont(title_font)
 

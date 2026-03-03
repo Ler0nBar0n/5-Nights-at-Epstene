@@ -30,10 +30,11 @@ class MainWindow(QMainWindow):
 
         # Подключение сигнала изменения масштаба
         self.scale_manager.scaleFactorChanged.connect(self.central_widget.update_ui_scale)
-
         # Подключение сигналов от MainUI для кнопок
         self.central_widget.settingsClicked.connect(self.open_settings)
         self.central_widget.createTaskClicked.connect(self.open_create_task)
+        
+        self.central_widget.viewTaskRequested.connect(self.open_view_task)
 
         # Создание оверлеев
         self.settings_overlay = SettingsOverlay(self.scale_manager, self.central_widget)
@@ -42,6 +43,8 @@ class MainWindow(QMainWindow):
         self.create_task_overlay.hide()
         self.view_task_overlay = ViewTaskOverlay(self.scale_manager, self.central_widget)
         self.view_task_overlay.hide()
+        
+        self.create_task_overlay.taskCreated.connect(self.create_task)
 
         self.tasks = []  # для хранения созданных задач
 

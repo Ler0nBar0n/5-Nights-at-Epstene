@@ -11,6 +11,8 @@ temp_id = 0
 class MainUI(QWidget):
     settingsClicked = pyqtSignal()
     createTaskClicked = pyqtSignal()
+    viewTaskRequested = pyqtSignal(str, str)
+
 
     def __init__(self, scale_manager):
         super().__init__()
@@ -106,6 +108,8 @@ class MainUI(QWidget):
         """Создать задачу и добавить на доску"""
         task = TaskFactory.create_task(self.board.tasks_container, title, description, self.scale_manager)
         task.move(50, 50)
+        # Соединяем сигнал задачи с сигналом MainUI
+        task.viewRequested.connect(self.viewTaskRequested.emit)
         self.board.add_task(task)
         return task
 
