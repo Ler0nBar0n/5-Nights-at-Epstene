@@ -11,6 +11,9 @@ class BaseOverlay(QWidget):
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setAttribute(Qt.WA_TranslucentBackground, False)
         
+        self.base_width=450
+        self.base_height=350
+        
         # Затемняющий слой (полупрозрачный фон)
         self.dark_overlay = QWidget(self)
         self.dark_overlay.setGeometry(0, 0, self.width(), self.height())
@@ -22,7 +25,7 @@ class BaseOverlay(QWidget):
         
         # Контейнер для содержимого (центрированный)
         self.content_container = QWidget(self)
-        self.content_container.setFixedSize(450, 350)
+        self.content_container.setFixedSize(self.base_width, self.base_height)
         self.content_container.setStyleSheet("""
             QWidget {
                 background-color: rgba(255, 255, 255, 220);
@@ -143,8 +146,8 @@ class BaseOverlay(QWidget):
         sf = getattr(main_window, 'ui_scale_factor', 1.0)
 
         # Размер контейнера
-        container_width = int(450 * sf)
-        container_height = int(350 * sf)
+        container_width = int(self.base_width * sf)
+        container_height = int(self.base_height * sf)
         self.content_container.setFixedSize(container_width, container_height)
 
         # Радиус скругления контейнера
@@ -224,4 +227,5 @@ class BaseOverlay(QWidget):
 
         self.resizeEvent(None)  # обновить центровку
     
+    # def save_changes(self):
     

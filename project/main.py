@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 from settings import SettingsOverlay
+from create_task import CreateTaskOverlay
 from drawers import DrawerButton, DrawerScrollArea
 
 temp_id=0
@@ -58,6 +59,9 @@ class MainWindow(QMainWindow):
         # Создаем оверлей для настроек (изначально скрыт)
         self.settings_overlay = SettingsOverlay(self.central_widget)
         self.settings_overlay.hide()
+        # оверлей создания задачи
+        self.create_task_overlay = CreateTaskOverlay(self.central_widget)
+        self.create_task_overlay.hide()
         
         # Добавляем несколько ящиков для примера
         self.update_drawers(10)
@@ -130,10 +134,11 @@ class MainWindow(QMainWindow):
         self.settings_btn.setToolTip("Настройки")
         
         self.plus_btn = QPushButton("➕")
-        self.plus_btn.setToolTip("Добавить")
+        self.plus_btn.clicked.connect(self.open_create_task)
+        self.plus_btn.setToolTip("Добавить задачу")
         
         self.menu_btn = QPushButton("☰")
-        self.menu_btn.setToolTip("Меню")
+        self.menu_btn.setToolTip("Изменить вид")
         
         # Устанавливаем стиль для кнопок
         self.update_top_buttons_style()
@@ -254,11 +259,19 @@ class MainWindow(QMainWindow):
         self.settings_overlay.show()
         self.settings_overlay.raise_()
     
+    def open_create_task(self):
+        """Открыть окно создания задачи"""
+        self.create_task_overlay.setGeometry(0, 0, self.central_widget.width(), self.central_widget.height())
+        self.create_task_overlay.show()
+        self.create_task_overlay.raise_()
+        
     def resizeEvent(self, event):
         """Обновляем размер оверлея при изменении размера окна"""
         super().resizeEvent(event)
         if hasattr(self, 'settings_overlay') and self.settings_overlay.isVisible():
             self.settings_overlay.setGeometry(0, 0, self.central_widget.width(), self.central_widget.height())
+        if hasattr(self, 'create_task_overlay') and self.create_task_overlay.isVisible():
+            self.create_task_overlay.setGeometry(0, 0, self.central_widget.width(), self.central_widget.height())
     
     def update_drawers(self, count):
         """Обновить количество ящиков"""
