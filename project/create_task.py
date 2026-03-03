@@ -85,5 +85,10 @@ class CreateTaskOverlay(BaseOverlay):
         self.task_desc_edit.setStyleSheet(base_input_style)
         
     def save_changes(self):
-        # TODO: сохранить данные задачи
+        title = self.task_title_edit.text()
+        description = self.task_desc_edit.toPlainText()
+        if title.strip():  # Проверка, что заголовок не пустой
+            main_window = self.window()
+            if hasattr(main_window, 'create_task'):
+                main_window.create_task(title, description)
         self.close()

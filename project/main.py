@@ -6,24 +6,86 @@ from PyQt5.QtGui import *
 from settings import SettingsOverlay
 from create_task import CreateTaskOverlay
 from drawers import DrawerButton, DrawerScrollArea
+from task import TaskWidget, TaskFactory, ViewTaskOverlay
 
 temp_id=0
-
 class BoardLabel(QLabel):
-    """Лейбл в виде доски"""
+    """Лейбл в виде доски (фон)"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAlignment(Qt.AlignCenter)
-        
-        # Стиль для доски
         self.setStyleSheet("""
             QLabel {
-            background-color: rgba(255, 255, 255, 200);
-            border: none;
-            border-radius: 20px;
-            color: #333;
-            padding: 20px;
-        }
+                background-color: rgba(255, 255, 255, 150);
+                border: none;
+                border-radius: 20px;
+                color: #333;
+                padding: 20px;
+            }
+        """)
+
+class Board(QWidget):
+    """Доска с фоновым лейблом и контейнером задач поверх"""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet("""
+            QWidget {
+                background-color: transparent;
+                border: none;
+            }
+        """)
+        self.tasks = []
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Фоновый лейбл (занимает всю область)
+        self.board_label = BoardLabel(self)
+        self.board_label.lower()  # на задний план
+
+        # Контейнер для задач (прозрачный, поверх лейбла)
+        self.tasks_container = QWidget(self)
+        self.tasks_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.tasks_container.setStyleSheet("background-color: transparent;")
+
+        # Устанавливаем геометрию для обоих виджетов
+        self.update_geometry()
+
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.update_geometry()
+
+    def update_geometry(self):
+        """Обновить размеры фонового лейбла и контейнера задач"""
+        rect = self.rect()
+        self.board_label.setGeometry(rect)
+        self.tasks_container.setGeometry(rect)
+
+    def add_task(self, task):
+        """Добавить задачу в контейнер задач"""
+        task.setParent(self.tasks_container)
+        self.tasks.append(task)
+        task.show()
+        task.raise_()  # поднимаем над другими задачами (но они и так в контейнере)
+
+    def update_tasks_style(self):
+        """Обновить стиль всех задач (при изменении масштаба)"""
+        for task in self.tasks:
+            task.update_style()
+
+    def update_label_style(self, sf):
+        """Обновить стиль фонового лейбла с учётом масштаба"""
+        font_size = int(18 * sf)
+        padding = int(20 * sf)
+        radius = int(20 * sf)
+        self.board_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: rgba(255, 255, 255, 200);
+                border: none;
+                border-radius: {radius}px;
+                color: #333;
+                padding: {padding}px;
+                font-size: {font_size}px;
+            }}
         """)
 
 class MainWindow(QMainWindow):
@@ -62,6 +124,9 @@ class MainWindow(QMainWindow):
         # оверлей создания задачи
         self.create_task_overlay = CreateTaskOverlay(self.central_widget)
         self.create_task_overlay.hide()
+        # оверлей просмотра задачи
+        self.view_task_overlay = ViewTaskOverlay(self.central_widget)
+        self.view_task_overlay.hide()
         
         # Добавляем несколько ящиков для примера
         self.update_drawers(10)
@@ -150,7 +215,7 @@ class MainWindow(QMainWindow):
         self.left_layout.addWidget(self.top_panel)
         
         # Доска
-        self.board = BoardLabel()
+        self.board = Board()
         self.left_layout.addWidget(self.board)
         
         layout.addWidget(self.left_panel, 1)
@@ -245,6 +310,11 @@ class MainWindow(QMainWindow):
         # Обновляем шрифты в кнопках ящиков через DrawerButton
         DrawerButton.update_scale_factor(self.ui_scale_factor)
         
+        # Обновляем стиль лейбла доски
+        self.board.update_label_style(self.ui_scale_factor)
+        # Обновляем стиль всех задач
+        self.board.update_tasks_style()
+        
         # Перерисовываем все кнопки в drawer_scroll
         if hasattr(self, 'drawer_scroll'): #проверка что этот атрибут есть
             for i in range(self.drawer_scroll.layout.count()):
@@ -265,6 +335,18 @@ class MainWindow(QMainWindow):
         self.create_task_overlay.show()
         self.create_task_overlay.raise_()
         
+    def create_task(self, title, description):
+        task = TaskFactory.create_task(self.board.tasks_container, title, description)
+        task.move(50, 50)
+        self.board.add_task(task)
+
+    def open_view_task(self, title, description):
+        """Открывает оверлей просмотра задачи с переданными данными"""
+        self.view_task_overlay.set_task_data(title, description)
+        self.view_task_overlay.setGeometry(0, 0, self.central_widget.width(), self.central_widget.height())
+        self.view_task_overlay.show()
+        self.view_task_overlay.raise_()
+    
     def resizeEvent(self, event):
         """Обновляем размер оверлея при изменении размера окна"""
         super().resizeEvent(event)
@@ -272,6 +354,8 @@ class MainWindow(QMainWindow):
             self.settings_overlay.setGeometry(0, 0, self.central_widget.width(), self.central_widget.height())
         if hasattr(self, 'create_task_overlay') and self.create_task_overlay.isVisible():
             self.create_task_overlay.setGeometry(0, 0, self.central_widget.width(), self.central_widget.height())
+        if hasattr(self, 'view_task_overlay') and self.view_task_overlay.isVisible():
+            self.view_task_overlay.setGeometry(0, 0, self.central_widget.width(), self.central_widget.height())
     
     def update_drawers(self, count):
         """Обновить количество ящиков"""
