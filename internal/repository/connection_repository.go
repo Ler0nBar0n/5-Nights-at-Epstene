@@ -54,3 +54,14 @@ func (r *ConnectionRepository) DeleteByUserIDAndBoardID(boardID uint, userID uin
 	err := r.db.Where("user_id = ?", userID).Where("board_id = ?", boardID).Delete(&entity.Connection{}).Error
 	return err
 }
+
+func (r *ConnectionRepository) GetWithRole(boardID, userID uint) (*entity.Connection, error) {
+	var conn entity.Connection
+	err := r.db.Preload("Role").
+		Where("board_id = ? AND user_id = ?", boardID, userID).
+		First(&conn).Error
+	if err != nil {
+		return nil, err
+	}
+	return &conn, nil
+}

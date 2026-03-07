@@ -18,9 +18,7 @@ func NewBoardService(bRepo *repository.BoardRepository, cRepo *repository.Connec
 	}
 }
 
-// CreateBoard создает доску и сразу назначает создателя админом
 func (s *BoardService) CreateBoard(name string, creatorID uint) (*entity.Board, error) {
-	// 1. Создаем саму доску
 	board := &entity.Board{
 		Name:      name,
 		CreatorID: creatorID,
@@ -30,12 +28,10 @@ func (s *BoardService) CreateBoard(name string, creatorID uint) (*entity.Board, 
 		return nil, fmt.Errorf("не удалось создать доску: %v", err)
 	}
 
-	// 2. Создаем связь: назначаем создателя админом (например, роль 10)
-	// В твоей сущности Connection роль по умолчанию 1, давай для админа возьмем 10
 	connection := &entity.Connection{
 		UserID:  creatorID,
-		BoardID: board.ID, // ID заполнится после сохранения доски GORM-ом
-		Role:    10,
+		BoardID: board.ID,
+		RoleID:  uint(10),
 	}
 
 	if err := s.connectionRepo.Create(connection); err != nil {
@@ -45,7 +41,6 @@ func (s *BoardService) CreateBoard(name string, creatorID uint) (*entity.Board, 
 	return board, nil
 }
 
-// GetBoardByID получает данные о доске
 func (s *BoardService) GetBoardByID(id uint) (*entity.Board, error) {
 	board, err := s.boardRepo.GetByID(id)
 	if err != nil {
@@ -54,12 +49,11 @@ func (s *BoardService) GetBoardByID(id uint) (*entity.Board, error) {
 	return board, nil
 }
 
-// AddUserToBoard добавляет нового участника на доску (обычный пользователь, роль 1)
 func (s *BoardService) AddUserToBoard(boardID uint, userID uint) error {
 	connection := &entity.Connection{
 		UserID:  userID,
 		BoardID: boardID,
-		Role:    1, // Обычный участник
+		RoleID:  uint(1),
 	}
 
 	if err := s.connectionRepo.Create(connection); err != nil {
