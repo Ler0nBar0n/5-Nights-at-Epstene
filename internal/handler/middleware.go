@@ -19,11 +19,10 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte("super_secret_key_epstene"), nil // Ключ должен быть таким же, как в auth.go
+			return []byte("super_secret_key_epstene"), nil
 		})
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			// Кладем user_id в контекст, чтобы хендлеры могли его достать
 			c.Set("user_id", uint(claims["user_id"].(float64)))
 			c.Next()
 		} else {

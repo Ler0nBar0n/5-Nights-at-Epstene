@@ -34,7 +34,6 @@ func SeedRoles(db *gorm.DB) {
 	}
 
 	for _, r := range roles {
-		// Создаем роль, если её еще нет в базе
 		db.FirstOrCreate(&r, entity.Role{Name: r.Name})
 	}
 }

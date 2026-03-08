@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"5-Nights-at-Epstene/internal/auth" // Добавь этот импорт!
+	"5-Nights-at-Epstene/internal/auth" 
 	"5-Nights-at-Epstene/internal/dto"
 	"5-Nights-at-Epstene/internal/service"
 	"net/http"
@@ -38,7 +38,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 }
 
-// Оставляем ТОЛЬКО ОДИН метод Login
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

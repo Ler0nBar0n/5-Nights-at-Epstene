@@ -12,18 +12,15 @@ func main() {
 	db := database.CreationDB()
 	database.SeedRoles(db)
 
-	// 1. Repositories
 	userRepo := repository.NewUserRepository(db)
 	boardRepo := repository.NewBoardRepository(db)
 	connRepo := repository.NewConnectionRepository(db)
 	taskRepo := repository.NewTaskRepository(db)
 
-	// 2. Services
 	userService := service.NewUserService(userRepo)
 	boardService := service.NewBoardService(boardRepo, connRepo)
 	taskService := service.NewTaskService(taskRepo, boardRepo)
 
-	// 3. Handlers
 	authHandler := handler.NewAuthHandler(userService)
 	boardHandler := handler.NewBoardHandler(boardService)
 	taskHandler := handler.NewTaskHandler(taskService)
@@ -32,16 +29,14 @@ func main() {
 
     api := r.Group("/api")
     {
-        // Публичные роуты (регистрация и логин)
         auth := api.Group("/auth")
         {
             auth.POST("/register", authHandler.Register)
             auth.POST("/login", authHandler.Login)
         }
 
-        // ЗАЩИЩЕННЫЕ РОУТЫ (добавляем Middleware здесь)
         protected := api.Group("/")
-        protected.Use(handler.AuthMiddleware()) // <--- ЭТОЙ СТРОКИ У ТЕБЯ НЕ ХВАТАЕТ 
+        protected.Use(handler.AuthMiddleware()) 
         {
             boards := protected.Group("/boards")
             {

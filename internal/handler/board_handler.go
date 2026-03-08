@@ -24,7 +24,6 @@ func (h *BoardHandler) Create(c *gin.Context) {
         return
     }
 
-    // Извлекаем ID пользователя, который мы положили в Middleware
     userID := c.MustGet("user_id").(uint) 
 
     board, err := h.service.CreateBoard(req.Name, userID)
