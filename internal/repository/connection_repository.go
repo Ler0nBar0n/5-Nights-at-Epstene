@@ -47,6 +47,8 @@ func (r *ConnectionRepository) UpdateRole(role int, boardID uint, userID uint) (
 		return nil, err
 	}
 
+	connection.RoleID = uint(role)
+
 	return r.save(connection)
 }
 

@@ -21,7 +21,20 @@ func CreationDB() *gorm.DB {
 		&entity.Connection{},
 		&entity.Task{},
 		&entity.User{},
+		&entity.Role{},
 	)
 
 	return DB
+}
+
+func SeedRoles(db *gorm.DB) {
+	roles := []entity.Role{
+		{Model: gorm.Model{ID: 1}, Name: "Участник", CanManageTasks: false, CanManageUsers: false},
+		{Model: gorm.Model{ID: 10}, Name: "Владелец", CanManageTasks: true, CanManageUsers: true},
+	}
+
+	for _, r := range roles {
+		// Создаем роль, если её еще нет в базе
+		db.FirstOrCreate(&r, entity.Role{Name: r.Name})
+	}
 }

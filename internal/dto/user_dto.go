@@ -17,3 +17,8 @@ type UserResponse struct {
 	Email    string `json:"email"`
 	Position int    `json:"position"`
 }
+
+type LoginResponse struct {
+	Token string       `json:"token"`
+	User  UserResponse `json:"user"`
+}
