@@ -1,0 +1,249 @@
+basePath: /api
+definitions:
+  5-Nights-at-Epstene_internal_dto.CreateBoardRequest:
+    properties:
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+  5-Nights-at-Epstene_internal_dto.LoginRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  5-Nights-at-Epstene_internal_dto.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/5-Nights-at-Epstene_internal_dto.UserResponse'
+    type: object
+  5-Nights-at-Epstene_internal_dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      login:
+        maxLength: 30
+        minLength: 3
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - login
+    - password
+    type: object
+  5-Nights-at-Epstene_internal_dto.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      login:
+        type: string
+      position:
+        type: integer
+    type: object
+  5-Nights-at-Epstene_internal_entity.Board:
+    properties:
+      createdAt:
+        type: string
+      creator_id:
+        type: integer
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  5-Nights-at-Epstene_internal_entity.Task:
+    properties:
+      assignee_id:
+        type: integer
+      board_id:
+        type: integer
+      color:
+        type: string
+      content:
+        type: string
+      createdAt:
+        type: string
+      creator_id:
+        type: integer
+      deadline:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      status:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: API сервера для управления досками и задачами.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: 5 Nights at Epstene API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/5-Nights-at-Epstene_internal_dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/5-Nights-at-Epstene_internal_dto.LoginResponse'
+      summary: Вход в систему
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные регистрации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/5-Nights-at-Epstene_internal_dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/5-Nights-at-Epstene_internal_dto.UserResponse'
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /boards/:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Название доски
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/5-Nights-at-Epstene_internal_dto.CreateBoardRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/5-Nights-at-Epstene_internal_entity.Board'
+      security:
+      - BearerAuth: []
+      summary: Создание новой доски
+      tags:
+      - boards
+  /boards/{id}:
+    get:
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/5-Nights-at-Epstene_internal_entity.Board'
+      security:
+      - BearerAuth: []
+      summary: Получить информацию о доске
+      tags:
+      - boards
+  /boards/{id}/tasks:
+    get:
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/5-Nights-at-Epstene_internal_entity.Task'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Получить все задачи доски
+      tags:
+      - tasks
+  /tasks/:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Объект задачи
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/5-Nights-at-Epstene_internal_entity.Task'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/5-Nights-at-Epstene_internal_entity.Task'
+      security:
+      - BearerAuth: []
+      summary: Создание задачи
+      tags:
+      - tasks
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

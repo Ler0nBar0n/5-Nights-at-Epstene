@@ -3,6 +3,7 @@ package handler
 import (
 	"5-Nights-at-Epstene/internal/dto"
 	"5-Nights-at-Epstene/internal/service"
+	"5-Nights-at-Epstene/internal/entity"
 	"net/http"
 	"strconv"
 
@@ -13,6 +14,15 @@ type BoardHandler struct {
 	service *service.BoardService
 }
 
+// Create godoc
+// @Summary Создание новой доски
+// @Security BearerAuth
+// @Tags boards
+// @Accept json
+// @Produce json
+// @Param input body dto.CreateBoardRequest true "Название доски"
+// @Success 201 {object} entity.Board
+// @Router /boards/ [post]
 func NewBoardHandler(s *service.BoardService) *BoardHandler {
 	return &BoardHandler{service: s}
 }
@@ -26,7 +36,10 @@ func (h *BoardHandler) Create(c *gin.Context) {
 
     userID := c.MustGet("user_id").(uint) 
 
-    board, err := h.service.CreateBoard(req.Name, userID)
+    var board *entity.Board
+    var err error
+    
+    board, err = h.service.CreateBoard(req.Name, userID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
@@ -34,6 +47,13 @@ func (h *BoardHandler) Create(c *gin.Context) {
     c.JSON(http.StatusCreated, board)
 }
 
+// GetByID godoc
+// @Summary Получить информацию о доске
+// @Security BearerAuth
+// @Tags boards
+// @Param id path int true "Board ID"
+// @Success 200 {object} entity.Board
+// @Router /boards/{id} [get]
 func (h *BoardHandler) GetByID(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	board, err := h.service.GetBoardByID(uint(id))
