@@ -66,11 +66,13 @@ func main() {
                 boards.POST("/", boardHandler.Create)
                 boards.GET("/:id", boardHandler.GetByID)
                 boards.GET("/:id/tasks", taskHandler.GetByBoard)
+                boards.DELETE("/:id", boardHandler.Delete)
             }
 
             tasks := protected.Group("/tasks")
             {
                 tasks.POST("/", taskHandler.Create)
+                tasks.DELETE("/:id", taskHandler.Delete)
             }
         }
     }

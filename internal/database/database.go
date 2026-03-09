@@ -31,6 +31,7 @@ func SeedRoles(db *gorm.DB) {
 	roles := []entity.Role{
 		{Model: gorm.Model{ID: 1}, Name: "Участник", CanManageTasks: false, CanManageUsers: false},
 		{Model: gorm.Model{ID: 10}, Name: "Владелец", CanManageTasks: true, CanManageUsers: true},
+		{Model: gorm.Model{ID: 100}, Name: "Дедушка Эпштейн", CanManageTasks: true, CanManageUsers: true},
 	}
 
 	for _, r := range roles {

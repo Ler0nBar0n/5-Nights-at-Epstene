@@ -181,6 +181,21 @@ paths:
       tags:
       - boards
   /boards/{id}:
+    delete:
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Удаление доски
+      tags:
+      - boards
     get:
       parameters:
       - description: Board ID
@@ -239,6 +254,22 @@ paths:
       security:
       - BearerAuth: []
       summary: Создание задачи
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Удаление задачи
       tags:
       - tasks
 securityDefinitions:

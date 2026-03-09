@@ -4,6 +4,7 @@ import (
 	"5-Nights-at-Epstene/internal/entity"
 	"5-Nights-at-Epstene/internal/repository"
 	"fmt"
+	"errors"
 )
 
 type BoardService struct {
@@ -60,4 +61,11 @@ func (s *BoardService) AddUserToBoard(boardID uint, userID uint) error {
 		return fmt.Errorf("не удалось добавить пользователя на доску: %v", err)
 	}
 	return nil
+}
+
+func (s *BoardService) DeleteBoard(boardID uint, userRoleID uint) error {
+    if userRoleID != 100 {
+        return errors.New("недостаточно прав: только Эпштейн может удалять доски")
+    }
+    return s.boardRepo.Delete(boardID)
 }

@@ -156,6 +156,31 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "boards"
+                ],
+                "summary": "Удаление доски",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Board ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
             }
         },
         "/boards/{id}/tasks": {
@@ -225,6 +250,33 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/5-Nights-at-Epstene_internal_entity.Task"
                         }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Удаление задачи",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }

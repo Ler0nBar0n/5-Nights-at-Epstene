@@ -59,3 +59,16 @@ func (s *TaskService) AssignUser(taskID uint, userID *uint) (*entity.Task, error
 	}
 	return task, nil
 }
+
+func (s *TaskService) DeleteTask(taskID uint, userID uint, userRoleID uint) error {
+    task, err := s.taskRepo.GetByID(taskID)
+    if err != nil {
+        return err
+    }
+
+    if userRoleID == 100 || task.CreatorID == userID {
+        return s.taskRepo.Delete(taskID)
+    }
+
+    return errors.New("вы не можете удалить чужую задачу")
+}

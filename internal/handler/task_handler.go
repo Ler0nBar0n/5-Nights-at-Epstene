@@ -58,3 +58,22 @@ func (h *TaskHandler) GetByBoard(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, tasks)
 }
+
+// Delete godoc
+// @Summary Удаление задачи
+// @Security BearerAuth
+// @Tags tasks
+// @Param id path int true "Task ID"
+// @Success 204 "No Content"
+// @Router /tasks/{id} [delete]
+func (h *TaskHandler) Delete(c *gin.Context) {
+    id, _ := strconv.Atoi(c.Param("id"))
+    userID := c.MustGet("user_id").(uint)
+    roleID := c.MustGet("role_id").(uint)
+
+    if err := h.service.DeleteTask(uint(id), userID, roleID); err != nil {
+        c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+        return
+    }
+    c.Status(http.StatusNoContent)
+}

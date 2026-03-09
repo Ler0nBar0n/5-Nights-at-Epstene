@@ -125,7 +125,7 @@ func (r *TaskRepository) UpdateStatus(status int, ID uint) (*entity.Task, error)
 	return r.save(task)
 }
 
-func (r *TaskRepository) DeleteByID(ID uint) error {
+func (r *TaskRepository) Delete(ID uint) error {
 	err := r.db.Where("id = ?", ID).Delete(&entity.Task{}).Error
 	return err
 }

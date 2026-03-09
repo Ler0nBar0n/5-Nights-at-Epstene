@@ -61,3 +61,7 @@ func (r *BoardRepository) UpdateName(name string, ID uint) (*entity.Board, error
 	board.Name = name
 	return r.save(board)
 }
+
+func (r *BoardRepository) Delete(id uint) error {
+	return r.db.Delete(&entity.Board{}, id).Error
+}

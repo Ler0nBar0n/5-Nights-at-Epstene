@@ -67,7 +67,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := auth.GenerateToken(user.ID, user.Position)
+	token, err := auth.GenerateToken(user.ID, user.Position, user.RoleID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка создания токена"})
 		return

@@ -63,3 +63,21 @@ func (h *BoardHandler) GetByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, board)
 }
+
+// Delete godoc
+// @Summary Удаление доски
+// @Security BearerAuth
+// @Tags boards
+// @Param id path int true "Board ID"
+// @Success 204 "No Content"
+// @Router /boards/{id} [delete]
+func (h *BoardHandler) Delete(c *gin.Context) {
+    id, _ := strconv.Atoi(c.Param("id"))
+    roleID := c.MustGet("role_id").(uint)
+
+    if err := h.service.DeleteBoard(uint(id), roleID); err != nil {
+        c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+        return
+    }
+    c.Status(http.StatusNoContent)
+}
